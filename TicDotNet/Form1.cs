@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
-
+using System.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
+using RadioButton = System.Windows.Forms.RadioButton;
 
 namespace WindowsFormsApplication3
 {
@@ -12,6 +14,8 @@ namespace WindowsFormsApplication3
         bool m_moving=false;
         bool m_homing = false;
         private bool m_decelerating;
+
+        Timer drcTimer;
 
         public Form1()
         {
@@ -43,14 +47,14 @@ namespace WindowsFormsApplication3
                     //m_tic.set_starting_speed(2000000);
                     m_tic.exit_safe_start();
                     m_tic.wait_for_device_ready();
-                    bn_Conect.Text = "Disconect";
+                    bn_Conect.Text = "Disconnect";
                     labelConection.Text = "YES";
                 }
                 else
                 {
                     m_tic.deenergize();
                     m_tic.close();
-                    bn_Conect.Text="Conect";
+                    bn_Conect.Text="Connect";
                     labelConection.Text = "NO";
                     m_conected = false;
                 }
@@ -148,6 +152,7 @@ namespace WindowsFormsApplication3
         {
             if (m_moving == false)
             {
+                //m_tic.set_step_mode(2);
                 m_tic.set_max_speed((int)numericUpDownSpeed.Value);
                 m_tic.set_target_position((int)numericUpDownPosition.Value);
                 m_moving = true;
@@ -219,6 +224,45 @@ namespace WindowsFormsApplication3
         private void RESET_POS_Click(object sender, EventArgs e)
         {
             m_tic.halt_and_set_position(0);
+        }
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            drcTimer = new Timer();
+            drcTimer.Interval = (int)numericUpDownDelay.Value;
+            drcTimer.Start();
+            drcTimer.Tick += DrcTimer_Tick;
+
+        }
+
+        private void DrcTimer_Tick(object sender, EventArgs e)
+        {
+            //m_moving = true;
+            //m_tic.set_step_mode(2);
+            m_tic.set_max_speed((int)numericUpDownSpeed.Value);
+            m_tic.set_target_position(m_tic.vars.current_position + (int)numericUpDownInterval.Value);
+           // m_tic.set_target_velocity(0);
+            //m_moving = false;
+            if (m_tic.vars.current_position>= (int)numericUpDownStop.Value)
+            {
+                drcTimer.Stop();
+                drcTimer.Tick -= DrcTimer_Tick;
+            }
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            drcTimer.Stop();
+            drcTimer.Tick -= DrcTimer_Tick;
+        }
+
+        private void gbStepMode_Validated(object sender, EventArgs e)
+        {
+            object wStepMode = gbStepMode.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked)?.Tag;    
+            if (wStepMode != null)
+            {
+                m_tic.set_step_mode(Convert.ToInt32(wStepMode));
+            }
         }
     }
 }
