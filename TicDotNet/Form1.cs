@@ -26,6 +26,17 @@ namespace WindowsFormsApplication3
             checkBoxJogRigth.Enabled = m_conected;
             buttonEnergize.Enabled = m_conected;
             m_tic = new tic();
+            LoadControllers();
+
+
+        }
+
+        private void LoadControllers()
+        {
+            foreach (tic.PRODUCT_ID type in Enum.GetValues(typeof(tic.PRODUCT_ID)))
+            {
+                cboDevice.Items.Add(type);
+            }
         }
 
         private void bn_Conect_Click(object sender, EventArgs e)
@@ -35,8 +46,11 @@ namespace WindowsFormsApplication3
             {
                 if (!m_conected)
                 {
-                    m_conected = m_tic.open(tic.PRODUCT_ID.T36V4);
+                    tic.PRODUCT_ID type = (tic.PRODUCT_ID)cboDevice.SelectedItem;
+
+                    m_conected = m_tic.open(type);
                     m_tic.reinitialize();
+                    
 //                    m_tic.reset();
                     m_tic.energize();
                     m_tic.clear_driver_error();
@@ -229,10 +243,9 @@ namespace WindowsFormsApplication3
         private void btnStart_Click(object sender, EventArgs e)
         {
             drcTimer = new Timer();
-            drcTimer.Interval = (int)numericUpDownDelay.Value;
-            drcTimer.Start();
-            drcTimer.Tick += DrcTimer_Tick;
-
+            drcTimer.Tick += DrcTimer_Tick;          
+            drcTimer.Interval = (int)numericUpDownDelay.Value;            
+            drcTimer.Start();          
         }
 
         private void DrcTimer_Tick(object sender, EventArgs e)
@@ -240,10 +253,20 @@ namespace WindowsFormsApplication3
             //m_moving = true;
             //m_tic.set_step_mode(2);
             m_tic.set_max_speed((int)numericUpDownSpeed.Value);
-            m_tic.set_target_position(m_tic.vars.current_position + (int)numericUpDownInterval.Value);
-           // m_tic.set_target_velocity(0);
+
+            if (cbxDown.Checked)
+            {
+                m_tic.set_target_position(m_tic.vars.current_position - (int)numericUpDownInterval.Value);
+            }
+            else
+            {
+                m_tic.set_target_position(m_tic.vars.current_position + (int)numericUpDownInterval.Value);
+            }
+
+            //m_tic.set_target_velocity(0);
             //m_moving = false;
-            if (m_tic.vars.current_position>= (int)numericUpDownStop.Value)
+
+            if (Math.Abs(m_tic.vars.current_position) >= (int)numericUpDownStop.Value)
             {
                 drcTimer.Stop();
                 drcTimer.Tick -= DrcTimer_Tick;

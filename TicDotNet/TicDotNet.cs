@@ -5,6 +5,9 @@ using LibUsbDotNet;
 using LibUsbDotNet.Main;
 
 // Copyright 2019 Jose Ignacio Garcia de Cortazar
+//https://github.com/jigarciacortazar/TicDotNet
+
+//also https://github.com/pololu/pololu-usb-sdk
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -21,6 +24,9 @@ using LibUsbDotNet.Main;
 
 // Class for the Pololu Tic stepper drivers.
 
+/// <summary>
+/// !!! MUST Use Pololu Tic Controller center to Disable Safe start and automatically clear driver errors
+/// </summary>
 
 class tic {
 
@@ -391,7 +397,9 @@ class tic {
                 // Select config #1
                 wholeUsbDevice.SetConfiguration(1);
                 // Claim interface #0.
-                wholeUsbDevice.ClaimInterface(0);
+                wholeUsbDevice.ClaimInterface(0);              
+
+
             }
             product_id = prod_id;
 
